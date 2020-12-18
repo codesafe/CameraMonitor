@@ -6,20 +6,21 @@ using UnityEngine;
 
 
 
-
-
 public class CameraManager : MonoBehaviour
 {
     [SerializeField] CameraObj prefab;
+    [SerializeField] RaspObj raspprefab;
 
-    Dictionary<string, RaspMachine> raspMachineList = new Dictionary<string, RaspMachine>();
-    List<CameraObj> cameraobjList = new List<CameraObj>();
+    //Dictionary<string, RaspMachine> raspMachineList = new Dictionary<string, RaspMachine>();
+    //List<CameraObj> cameraobjList = new List<CameraObj>();
+
     private static CameraManager _instance;
 
-    Vector2 pivot = new Vector2(-430, 300);
+    Vector2 pivot = new Vector2(-450, 310);
     Vector2 stride = new Vector2(100, -100);
 
     private List<string> removeList = new List<string>();
+    private List<RaspObj> raspMachinelist = new List<RaspObj>();
 
     public static CameraManager getInstance()
     {
@@ -33,35 +34,17 @@ public class CameraManager : MonoBehaviour
 
     void Update()
     {
-        //         if (Input.GetKeyDown("space"))
-        //         {
-        //             AddCamera();
-        //         }
-
-        RemoveRasp();
-        AcceptNewRasp();
-        UpdateRasp();
-    }
-
-    void RemoveRasp()
-    {
-        if(removeList.Count > 0)
+        if (Input.GetKeyDown("space"))
         {
-            for (int i = 0; i < removeList.Count; i++)
-            {
-                List<CameraObj> camlist = raspMachineList[removeList[i]].GetCameraList();
-                for (int j = 0; j < camlist.Count; j++)
-                {
-                    cameraobjList.Remove(camlist[j]);
-                    //DestroyImmediate(camlist[j]);
-                }
+            RaspObj raspobj = Instantiate(raspprefab, transform);
+            raspobj.Init(null, "test", 1);
+            raspMachinelist.Add(raspobj);
 
-                raspMachineList[removeList[i]].Destroy();
-                raspMachineList.Remove(removeList[i]);
-            }
-            removeList.Clear();
             Refresh();
         }
+
+        AcceptNewRasp();
+        UpdateRasp();
     }
 
     private void AcceptNewRasp()
@@ -71,7 +54,6 @@ public class CameraManager : MonoBehaviour
 
         for (int i = 0; i < socketlist.Count; i++)
         {
-            //AddCamera(socketlist[i]);
             AddRaspMachine(socketlist[i]);
         }
     }
@@ -87,16 +69,9 @@ public class CameraManager : MonoBehaviour
             string machinename = Encoding.UTF8.GetString(receiveBuffer, 1, Predef.TCP_BUFFER - 1);
             machinename = machinename.Replace("\0", string.Empty);
 
-            RaspMachine rasp = new RaspMachine(clientsocket, machinename, cameranum);
-            raspMachineList.Add(machinename, rasp);
-
-            for(int i=0; i< cameranum; i++)
-            {
-                CameraObj obj = Instantiate(prefab, transform);
-                //obj.Init(cameraNum++, clientsocket);
-                cameraobjList.Add(obj);
-                rasp.AddCameraObj(obj);
-            }
+            RaspObj raspobj = Instantiate(raspprefab, transform);
+            raspobj.Init(clientsocket, machinename, cameranum);
+            raspMachinelist.Add(raspobj);
 
             Debug.Log(machinename);
         }
@@ -108,48 +83,35 @@ public class CameraManager : MonoBehaviour
         Refresh();
     }
 
-    // 77개가 MAX
-    public void AddCamera(Socket clientsocket)
-    {
-//         CameraObj obj = Instantiate(prefab, transform);
-//         obj.Init(cameraNum++, clientsocket);
-//         cameraobjList.Add(obj);
-
-        Refresh();
-    }
-
     void UpdateRasp()
     {
-        foreach(var r in raspMachineList)
+        // Disconnected 된것들 제거
+        for (int i = raspMachinelist.Count - 1; i >= 0; i--)
         {
-            r.Value.Update();
+            if (raspMachinelist[i].IsDisconnected())
+            {
+                Destroy(raspMachinelist[i].gameObject);
+                raspMachinelist.RemoveAt(i);
+            }
         }
     }
 
 
     void Refresh()
     {
-        int x = 0;
-        int y = 0;
-
-        for(int i=0; i<cameraobjList.Count; i++)
+        for(int i=0; i< raspMachinelist.Count; i++)
         {
-            if( x > 10)
-            {
-                x = 0;
-                y++;
-            }
-            cameraobjList[i].transform.localPosition = new Vector3(pivot.x + (stride.x * x), pivot.y + (stride.y * y), 0);
-            x++;
+            raspMachinelist[i].transform.localPosition = new Vector3(pivot.x, pivot.y - (i * 70), 0);
         }
     }
 
     public void SendPacket(char packet)
     {
+/*
         for(int i=0; i<cameraobjList.Count; i++)
         {
             cameraobjList[i].SendPacket(packet);
-        }
+        }*/
     }
 
     public void SendPacket(char packet, int param1, int param2, int param3)
@@ -160,18 +122,38 @@ public class CameraManager : MonoBehaviour
         data[2] = Convert.ToByte(param2);
         data[3] = Convert.ToByte(param3);
 
-        for (int i = 0; i < cameraobjList.Count; i++)
+
+//         for (int i = 0; i < raspMachinelist.Count; i++)
+//         {
+//             raspMachinelist[i].SendPacket(data);
+//         }
+
+    }
+
+    public void SendAutoFocusWithParam(int iso_value, int shutterspeed_value, int aperture_value, int captureformat)
+    {
+        for (int i = 0; i < raspMachinelist.Count; i++)
         {
-            cameraobjList[i].SendPacketWithBuf(data);
+            raspMachinelist[i].SendAutoFocusWithParam(iso_value, shutterspeed_value, aperture_value, captureformat);
+        }
+
+    }
+
+    public void Capture()
+    {
+        for (int i = 0; i < raspMachinelist.Count; i++)
+        {
+            raspMachinelist[i].Capture();
         }
     }
 
     public void Reset()
     {
+/*
         for (int i = 0; i < cameraobjList.Count; i++)
         {
             cameraobjList[i].Reset();
-        }
+        }*/
     }
 
     public void AddRemoveRasp(string rasp)

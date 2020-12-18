@@ -22,6 +22,7 @@ public class ServerObj : MonoBehaviour
     private int iso_value;
     private int shutterspeed_value;
     private int aperture_value;
+    private int captureformat_value;
 
     private readonly string[] isoString = { "Auto", "100", "200", "400", "800", "1600", "3200", "6400" };
     private readonly string[] shutterspeedString =
@@ -115,6 +116,20 @@ public class ServerObj : MonoBehaviour
         aperture.value = aperture_value;
         aperture.onValueChanged.AddListener(OnApertureValueChanged);
 
+        captureformat_value = 0;
+        format.options.Clear();
+        for (int i = 0; i < captureformatString.Length; i++)
+        {
+            Dropdown.OptionData option = new Dropdown.OptionData();
+            option.text = captureformatString[i];
+            format.options.Add(option);
+        }
+        format.value = captureformat_value;
+        format.onValueChanged.AddListener(OnCaptureFormatValueChanged);
+
+
+        
+
     }
 
     public void onClickReset()
@@ -124,14 +139,15 @@ public class ServerObj : MonoBehaviour
 
     public void onClickAutoFocus()
     {
-        //CameraManager.getInstance().SendPacket(Predef.PACKET_HALFPRESS);
-        CameraManager.getInstance().SendPacket(Predef.PACKET_HALFPRESS, iso_value, shutterspeed_value, aperture_value);
+        //CameraManager.getInstance().SendPacket(Predef.PACKET_HALFPRESS, iso_value, shutterspeed_value, aperture_value, captureformat_value);
+        CameraManager.getInstance().SendAutoFocusWithParam(iso_value, shutterspeed_value, aperture_value, captureformat_value);
         Debug.Log("Auto Focus!");
     }
 
     public void onClickCapture()
     {
-        CameraManager.getInstance().SendPacket(Predef.PACKET_SHOT);
+        //CameraManager.getInstance().SendPacket(Predef.PACKET_SHOT);
+        CameraManager.getInstance().Capture();
         Debug.Log("Shot!");
     }
 
@@ -151,6 +167,12 @@ public class ServerObj : MonoBehaviour
     {
         aperture_value = value;
         Debug.Log(apertureString[aperture_value]);
+    }
+
+    public void OnCaptureFormatValueChanged(int value)
+    {
+        captureformat_value = value;
+        Debug.Log(captureformatString[captureformat_value]);
     }
 
     public void OnHover(CameraObj camobj)

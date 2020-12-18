@@ -9,6 +9,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
+
+/*
+
 public class Client
 {
     private int camnum;
@@ -96,8 +99,11 @@ public class Client
 
         return packet;
     }
-
 }
+
+
+*/
+
 
 // 일단 Client Disconnect은 생각하지 않는다
 public class CameraObj : MonoBehaviour
@@ -113,12 +119,7 @@ public class CameraObj : MonoBehaviour
 
     private Vector2 progressSize;
     private Vector2 previewSize;
-    private Client clientNetThread = null;
     public int cameranum;
-
-    private string ipAddress;
-    private Socket udpSocket;
-    private IPEndPoint ipep;
 
     void Start()
     {
@@ -137,23 +138,13 @@ public class CameraObj : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (clientNetThread != null)
-            clientNetThread.Destroy();
+
     }
 
-    public void Init(int camnum, Socket clientsocket)
+    public void Init(int camnum)
     {
         cameranum = camnum;
         id.text = camnum.ToString();
-        clientNetThread = new Client(camnum, clientsocket);
-
-
-        string address = clientsocket.RemoteEndPoint.ToString();
-        string[] array = address.Split(new char[] { ':' });
-        ipAddress = array[0];
-
-        ipep = new IPEndPoint(IPAddress.Parse(ipAddress), Predef.udpport + camnum);
-        udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
     }
 
     public void SetDownloadProgress(int percent)
@@ -175,70 +166,15 @@ public class CameraObj : MonoBehaviour
         icon.sprite = focused ? normal : normal_gray;
     }
 
-    private void Update()
-    {
-        // 여기에서 받은 Packet Parse
-        if(clientNetThread != null)
-        {
-            byte[] packet = clientNetThread.GetRecvPacket();
-            if (packet != null)
-            {
-                Debug.Log(string.Format("Camera num {0} Recv packet\n", cameranum));
-
-                if(packet[0] == Predef.PACKET_AUTOFOCUS_RESULT)
-                {
-                    if(packet[1] == Predef.RESPONSE_OK)
-                        SetFocused(true);
-                    else
-                    {
-                        Debug.Log(string.Format("Camera {0} Error.", cameranum));
-                        SetFocused(false);
-                    }
-                }
-                else if (packet[0] == Predef.PACKET_UPLOAD_PROGRESS)
-                {
-                    progress.enabled = true;
-                    progress.color = new Color32(160, 0, 255, 255);
-
-                    char p = Convert.ToChar(packet[1]);
-                    SetDownloadProgress(p);
-                }
-                else if (packet[0] == Predef.PACKET_UPLOAD_DONE)
-                {
-                    //progress.enabled = false;
-                    SetDownloadProgress(10);
-                    progress.color = new Color32(0, 255, 0, 255);
-                    ShowPreview();
-                }
-            }
-
-        }
-    }
-
-    public void SendPacket(char packet)
-    {
-        byte[] data = new byte[Predef.UDP_BUFFER];
-        data[0] = Convert.ToByte(packet);
-        udpSocket.SendTo(data, Predef.UDP_BUFFER, SocketFlags.None, ipep);
-
-        if (packet == Predef.PACKET_HALFPRESS)
-            SetFocused(false);
-    }
-
-    public void SendPacketWithBuf(byte[] data)
-    {
-        //data[0] = Convert.ToByte(packet);
-        udpSocket.SendTo(data, Predef.UDP_BUFFER, SocketFlags.None, ipep);
-
-        //if (packet == Predef.PACKET_HALFPRESS)
-            SetFocused(false);
-    }
+//     private void Update()
+//     {
+//     }
 
     void ShowPreview()
     {
         preview.texture = null;
         //string path = string.Format("E:/ftp/name-{0}.jpg", cameranum);
-        string path = string.Format("{0}/name-{1}.jpg", Predef.ftpDirectoryName, cameranum);
+        string path = string.Format("{0}/{1}/name-{2}.jpg", Predef.ftpDirectoryName, Predef.capturedDirectoryName, cameranum);
         StartCoroutine(load_image_preview(path));
     }
 

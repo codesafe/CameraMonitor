@@ -15,9 +15,10 @@ public class Predef
     static public int udpport = 11000;
 
     static public int TCP_BUFFER = 16;
-    static public int UDP_BUFFER = 8;
+    static public int UDP_BUFFER = 32;
 
     static public string ftpDirectoryName;
+    static public string capturedDirectoryName;
 
 
     // Packet

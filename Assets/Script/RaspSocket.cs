@@ -1,38 +1,42 @@
 ﻿using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Collections;
 using System.Collections.Generic;
+
 using UnityEngine;
 
-public class RaspMachine
+public class RaspSocket
 {
-    private Socket socket;
+    private bool disconnected = false;
+    private Socket tcpsocket;
+    private Socket udpSocket;
+
     private Thread Socket_Thread = null;
     private bool loop = true;
     private object lockObject = new object();
-    private int camnum = 0;
-    private string machineName;
-    private List<CameraObj> cameraList = new List<CameraObj>();
+    private string ipAddress;
+    private IPEndPoint ipep;
 
     public List<byte[]> packetList = new List<byte[]>();
 
-    public RaspMachine(Socket _socket, string name, int _camnum)
+    public RaspSocket(Socket _socket)
     {
-        camnum = _camnum;
-        machineName = name;
-        socket = _socket;
-        Socket_Thread = new Thread(ReadWorker);
-        Socket_Thread.Start();
-    }
+        tcpsocket = _socket;
 
-    public void AddCameraObj(CameraObj obj)
-    {
-        cameraList.Add(obj);
-    }
+        if(tcpsocket != null)
+        {
+            string address = tcpsocket.RemoteEndPoint.ToString();
+            string[] array = address.Split(new char[] { ':' });
+            ipAddress = array[0];
 
-    public List<CameraObj> GetCameraList()
-    {
-        return cameraList;
+            ipep = new IPEndPoint(IPAddress.Parse(ipAddress), Predef.udpport);
+            udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+
+            Socket_Thread = new Thread(ReadWorker);
+            Socket_Thread.Start();
+        }
     }
 
     private void ReadWorker()
@@ -52,13 +56,14 @@ public class RaspMachine
                 byte[] receiveBuffer = new byte[Predef.TCP_BUFFER];
 
                 //int recvn = recvStm.Read(receiveBuffer, 0, Predef.TCP_BUFFER);
-                int recvn = socket.Receive(receiveBuffer, 0, Predef.TCP_BUFFER, SocketFlags.None);
+                int recvn = tcpsocket.Receive(receiveBuffer, 0, Predef.TCP_BUFFER, SocketFlags.None);
 
                 if (recvn == 0)
                 {
                     Debug.Log("Close Socket");
-                    socket.Close();
+                    tcpsocket.Close();
                     loop = false;
+                    disconnected = true;
                     continue;
                 }
 
@@ -74,26 +79,21 @@ public class RaspMachine
             catch (Exception e)
             {
                 loop = false;
-                socket.Close();
+                tcpsocket.Close();
                 continue;
             }
         }
 
-        CameraManager.getInstance().AddRemoveRasp(machineName);
+        //CameraManager.getInstance().AddRemoveRasp(machineName);
         Debug.Log("Exit thread");
     }
 
     public void Destroy()
     {
         loop = false;
-        socket.Close();
+        tcpsocket.Close();
         Socket_Thread.Abort();
         Socket_Thread.Join();
-
-        for(int i=0; i< cameraList.Count; i++)
-            UnityEngine.Object.DestroyImmediate(cameraList[i].gameObject);
-
-        cameraList.Clear();
     }
 
     public byte[] GetRecvPacket()
@@ -112,12 +112,15 @@ public class RaspMachine
         return packet;
     }
 
-    public void Update()
+    public void SendUdpPacket(byte[] data, int size)
     {
-        byte[] buf = GetRecvPacket();
-        if (buf != null)
-        {
-
-        }
+        //data[0] = Convert.ToByte(packet);
+        udpSocket.SendTo(data, size, SocketFlags.None, ipep);
     }
+
+    public bool IsDisconnected()
+    {
+        return disconnected;
+    }
+
 }
