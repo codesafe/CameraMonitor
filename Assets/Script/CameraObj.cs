@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Net;
-using System.Net.Sockets;
-using System.Threading;
+using System.IO;
 using System.Collections;
-using System.Collections.Generic;
+//using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-
+using FreeImageAPI;
 
 /*
 
@@ -126,6 +125,8 @@ public class CameraObj : MonoBehaviour
         SetFocused(false);
         //id.text = "";
         progressSize = progress.rectTransform.sizeDelta;
+        //progressSize.x = 71;
+
         previewSize = preview.rectTransform.sizeDelta;
         preview.enabled = false;
 
@@ -151,12 +152,16 @@ public class CameraObj : MonoBehaviour
     {
         if( percent == 0 )
         {
-            progress.gameObject.SetActive(false);
+            progress.enabled = false;
         }
         else
         {
             progress.gameObject.SetActive(true);
-            Single width = progressSize.x * ((percent * 10.0f) / 100.0f);
+            progress.enabled = true;
+
+            Single per = ((percent * 10.0f) / 100.0f);
+            Single width = progressSize.x * per;
+
             progress.rectTransform.sizeDelta = new Vector2(width, progressSize.y);
         }
     }
@@ -170,12 +175,135 @@ public class CameraObj : MonoBehaviour
 //     {
 //     }
 
-    void ShowPreview()
+    public void ShowPreview(string machineName)
     {
         preview.texture = null;
         //string path = string.Format("E:/ftp/name-{0}.jpg", cameranum);
-        string path = string.Format("{0}/{1}/name-{2}.jpg", Predef.ftpDirectoryName, Predef.capturedDirectoryName, cameranum);
-        StartCoroutine(load_image_preview(path));
+
+        string path = string.Format("{0}/{1}/{2}-{3}.{4}", 
+            Predef.ftpDirectoryName, Predef.capturedDirectoryName, 
+            machineName , cameranum, Predef.capturedFileExt);
+
+        if ( Predef.capturedFileExt == "raw" )
+        {
+            //string dcrawpath = Predef.ftpDirectoryName + "dcraw64.exe";
+
+            // 그냥 읽을수 없어서 변환해야한다
+            string outpath = string.Format("{0}/{1}/{2}-{3}.{4}",
+            Predef.ftpDirectoryName, Predef.capturedDirectoryName,
+            machineName, cameranum, "jpg");
+
+            string args = "-c -e " + path + " > " + outpath;
+            //ProcessStartInfo p = new ProcessStartInfo(dcrawpath, args);
+            //Process process = Process.Start(p);
+
+            StartCoroutine(ConvertRawToJpg(path, outpath));
+        }
+        else
+            StartCoroutine(load_image_preview(path));
+    }
+
+
+    public bool IsFileReady(string filename)
+    {
+        Debug.Log("Check file :  " + filename);
+        try
+        {
+            using (FileStream inputStream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.None))
+                return inputStream.Length > 0;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    const int ERROR_SHARING_VIOLATION = 32;
+    const int ERROR_LOCK_VIOLATION = 33;
+    private bool IsFileLocked(string file)
+    {
+        Debug.Log("Check file :  " + file);
+
+        //check that problem is not in destination file
+        if (File.Exists(file) == true)
+        {
+            FileStream stream = null;
+            try
+            {
+                stream = File.Open(file, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            }
+            catch (Exception ex2)
+            {
+                //_log.WriteLog(ex2, "Error in checking whether file is locked " + file);
+                int errorCode = Marshal.GetHRForException(ex2) & ((1 << 16) - 1);
+                if ((ex2 is IOException) && (errorCode == ERROR_SHARING_VIOLATION || errorCode == ERROR_LOCK_VIOLATION))
+                {
+                    return true;
+                }
+            }
+            finally
+            {
+                if (stream != null)
+                    stream.Close();
+            }
+        }
+        return false;
+    }
+
+    private IEnumerator ConvertRawToJpg(string originpath, string outpath)
+    {
+        while (true)
+        {
+            bool t = !IsFileLocked(originpath);
+            if (t == true)
+                break;
+            yield return new WaitForSeconds(1.0f);
+        }
+        //yield return new WaitUntil(() => IsFileReady(originpath) == true);
+        yield return new WaitForSeconds(1.0f);
+        //yield return new WaitForSeconds(0.1f);
+
+        /*
+                FreeImageAPI.FREE_IMAGE_FORMAT format = FreeImageAPI.FreeImage.GetFileType(originpath, 0);
+                Debug.Log("FreeImage Format : " + format.ToString());
+
+                FIBITMAP handle = FreeImageAPI.FreeImage.Load(format, originpath, FREE_IMAGE_LOAD_FLAGS.RAW_PREVIEW);
+                if( handle.IsNull )
+                {
+                    bool ret = FreeImageAPI.FreeImage.Save(FREE_IMAGE_FORMAT.FIF_JPEG, handle, outpath, FREE_IMAGE_SAVE_FLAGS.PNG_Z_BEST_SPEED);
+                    Debug.Log("FreeImage Save : " + (ret == true ? "OK" : "Fail"));
+                    FreeImageAPI.FreeImage.Unload(handle);
+                    handle.SetNull();
+                }
+                else
+                    Debug.Log("FreeImage handle is null ");
+
+        */
+
+        FIBITMAP dib = FreeImage.LoadEx(originpath);
+        if (dib.IsNull)
+        {
+            Debug.Log("Loading bitmap failed. Aborting.");
+            yield return null;
+        }
+
+        if (!FreeImage.SaveEx(ref dib, @"Sample.jpg", false))
+        {
+            Debug.Log("Saving bitmap failed.");
+        }
+
+        if (!FreeImage.SaveEx(
+            ref dib,
+            @"Sample",                          // No extension was selected so let 'SaveEx' decide.
+            FREE_IMAGE_FORMAT.FIF_JPEG,          // A format is needed this time.
+            FREE_IMAGE_SAVE_FLAGS.DEFAULT,      // PNG has no options so use default.
+            FREE_IMAGE_COLOR_DEPTH.FICD_AUTO, // 4bpp as result color depth.
+            true))                              // We're done so unload
+        {
+            FreeImage.UnloadEx(ref dib);
+        }
+
+        StartCoroutine(load_image_preview(outpath));
     }
 
     public void OnClick()

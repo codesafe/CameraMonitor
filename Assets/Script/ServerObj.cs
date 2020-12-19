@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Collections;
+using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -126,10 +127,6 @@ public class ServerObj : MonoBehaviour
         }
         format.value = captureformat_value;
         format.onValueChanged.AddListener(OnCaptureFormatValueChanged);
-
-
-        
-
     }
 
     public void onClickReset()
@@ -139,40 +136,48 @@ public class ServerObj : MonoBehaviour
 
     public void onClickAutoFocus()
     {
+        CameraManager.getInstance().Reset();
+
         //CameraManager.getInstance().SendPacket(Predef.PACKET_HALFPRESS, iso_value, shutterspeed_value, aperture_value, captureformat_value);
         CameraManager.getInstance().SendAutoFocusWithParam(iso_value, shutterspeed_value, aperture_value, captureformat_value);
-        Debug.Log("Auto Focus!");
+
+        if (captureformatString[captureformat_value] == "RAW + Large Fine JPEG" || captureformatString[captureformat_value] == "RAW")
+            Predef.capturedFileExt = "raw";
+        else
+            Predef.capturedFileExt = "jpg";
+
+        UnityEngine.Debug.Log("Auto Focus!");
     }
 
     public void onClickCapture()
     {
         //CameraManager.getInstance().SendPacket(Predef.PACKET_SHOT);
         CameraManager.getInstance().Capture();
-        Debug.Log("Shot!");
+        UnityEngine.Debug.Log("Shot!");
     }
 
     public void OnISOValueChanged(int value)
     {
         iso_value = value;
-        Debug.Log(isoString[iso_value]);
+        UnityEngine.Debug.Log(isoString[iso_value]);
     }
 
     public void OnShuutterSpeedValueChanged(int value)
     {
         shutterspeed_value = value;
-        Debug.Log(shutterspeedString[shutterspeed_value]);
+        UnityEngine.Debug.Log(shutterspeedString[shutterspeed_value]);
     }
 
     public void OnApertureValueChanged(int value)
     {
         aperture_value = value;
-        Debug.Log(apertureString[aperture_value]);
+        UnityEngine.Debug.Log(apertureString[aperture_value]);
     }
 
     public void OnCaptureFormatValueChanged(int value)
     {
         captureformat_value = value;
-        Debug.Log(captureformatString[captureformat_value]);
+        UnityEngine.Debug.Log(captureformatString[captureformat_value]);
     }
 
     public void OnHover(CameraObj camobj)

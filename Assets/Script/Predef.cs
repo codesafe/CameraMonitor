@@ -19,7 +19,7 @@ public class Predef
 
     static public string ftpDirectoryName;
     static public string capturedDirectoryName;
-
+    static public string capturedFileExt = "jpg";
 
     // Packet
     static public char PACKET_TRY_CONNECT = (char)0x05;     // connect to server

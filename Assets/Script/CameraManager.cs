@@ -149,11 +149,10 @@ public class CameraManager : MonoBehaviour
 
     public void Reset()
     {
-/*
-        for (int i = 0; i < cameraobjList.Count; i++)
+        for (int i = 0; i < raspMachinelist.Count; i++)
         {
-            cameraobjList[i].Reset();
-        }*/
+            raspMachinelist[i].Reset();
+        }
     }
 
     public void AddRemoveRasp(string rasp)

@@ -53,7 +53,7 @@ public class RaspObj : MonoBehaviour
     {
         for(int i=0; i<cameraobjList.Count; i++)
         {
-            cameraobjList[i].transform.localPosition = new Vector3(i*100, 0, 0);
+            cameraobjList[i].transform.localPosition = new Vector3(i * 110, 0, 0);
         }
     }
 
@@ -69,9 +69,30 @@ public class RaspObj : MonoBehaviour
                     break;
 
                 // TODO. 패킷 받았다. 처리해야한다
+                char packet = Convert.ToChar(buf[0]);
+                if( packet == Predef.PACKET_AUTOFOCUS_RESULT)
+                {
+                    int cameraNum = (int)Convert.ToChar(buf[1]);
+                    int result = (int)Convert.ToChar(buf[2]);
+                    cameraobjList[cameraNum].SetFocused(result == Predef.RESPONSE_OK);
+                }
+                else if( packet == Predef.PACKET_UPLOAD_PROGRESS )
+                {
+                    int cameraNum = (int)Convert.ToChar(buf[1]);
+                    int percent = (int)Convert.ToChar(buf[2]);
+                    cameraobjList[cameraNum].SetDownloadProgress(percent);
 
+                    Debug.Log(string.Format("Upload Progress : {0} : {1}", cameraNum, percent));
+                }
+                else if (packet == Predef.PACKET_UPLOAD_DONE)
+                {
+                    int cameraNum = (int)Convert.ToChar(buf[1]);
+                    cameraobjList[cameraNum].SetDownloadProgress(10);
+                    cameraobjList[cameraNum].ShowPreview(machineName);
+                    Debug.Log(string.Format("Upload Done : {0} ", cameraNum));
+
+                }
             }
-
         }
     }
 
@@ -122,6 +143,13 @@ public class RaspObj : MonoBehaviour
         if (di.Exists == false)
         {
             di.Create();
+        }
+    }
+    public void Reset()
+    {
+        for (int i = 0; i < cameraobjList.Count; i++)
+        {
+            cameraobjList[i].Reset();
         }
     }
 }

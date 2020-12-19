@@ -69,7 +69,7 @@ public class RaspSocket
 
                 lock (lockObject)
                 {
-                    Debug.Log("Recv Packet");
+                    //Debug.Log("Recv Packet");
                     packetList.Add(receiveBuffer);
                 }
                 //string Test = Encoding.Default.GetString(receiveBuffer);
