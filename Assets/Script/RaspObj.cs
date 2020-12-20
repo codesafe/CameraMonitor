@@ -117,13 +117,13 @@ public class RaspObj : MonoBehaviour
         raspsocket.SendUdpPacket(data, Predef.UDP_BUFFER);
     }
 
-    public void Capture()
+    public void Capture(string path)
     {
-        DateTime dt2 = new DateTime();
-        dt2 = DateTime.Now;
-        Predef.capturedDirectoryName = dt2.ToString("yyyyMMdd-HH_mm_ss");
-        string path = string.Format("{0}/{1}", Predef.ftpDirectoryName, Predef.capturedDirectoryName);
-        MakeDirectory(path);
+//         DateTime dt2 = new DateTime();
+//         dt2 = DateTime.Now;
+//         Predef.capturedDirectoryName = dt2.ToString("yyyyMMdd-HH_mm_ss");
+//         string path = string.Format("{0}/{1}", Predef.ftpDirectoryName, Predef.capturedDirectoryName);
+//         MakeDirectory(path);
 
         byte[] data = new byte[Predef.UDP_BUFFER];
         char packet = Predef.PACKET_SHOT;
@@ -135,16 +135,14 @@ public class RaspObj : MonoBehaviour
             data[i + 1] = namebytes[i];
 
         raspsocket.SendUdpPacket(data, Predef.UDP_BUFFER);
-    }
 
-    private void MakeDirectory(string path)
-    {
-        DirectoryInfo di = new DirectoryInfo(path);
-        if (di.Exists == false)
+        for (int i = 0; i < cameraobjList.Count; i++)
         {
-            di.Create();
+            cameraobjList[i].Reset();
+            cameraobjList[i].SetFocused(true);
         }
     }
+
     public void Reset()
     {
         for (int i = 0; i < cameraobjList.Count; i++)

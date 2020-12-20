@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.IO;
 using System.Net.Sockets;
 using System.Collections.Generic;
 using UnityEngine;
@@ -77,7 +78,7 @@ public class CameraManager : MonoBehaviour
         }
         else
         {
-
+            Debug.Log("Disconnect RaspMachine");
         }
 
         Refresh();
@@ -96,38 +97,12 @@ public class CameraManager : MonoBehaviour
         }
     }
 
-
     void Refresh()
     {
         for(int i=0; i< raspMachinelist.Count; i++)
         {
             raspMachinelist[i].transform.localPosition = new Vector3(pivot.x, pivot.y - (i * 70), 0);
         }
-    }
-
-    public void SendPacket(char packet)
-    {
-/*
-        for(int i=0; i<cameraobjList.Count; i++)
-        {
-            cameraobjList[i].SendPacket(packet);
-        }*/
-    }
-
-    public void SendPacket(char packet, int param1, int param2, int param3)
-    {
-        byte[] data = new byte[Predef.UDP_BUFFER];
-        data[0] = Convert.ToByte(packet);
-        data[1] = Convert.ToByte(param1);
-        data[2] = Convert.ToByte(param2);
-        data[3] = Convert.ToByte(param3);
-
-
-//         for (int i = 0; i < raspMachinelist.Count; i++)
-//         {
-//             raspMachinelist[i].SendPacket(data);
-//         }
-
     }
 
     public void SendAutoFocusWithParam(int iso_value, int shutterspeed_value, int aperture_value, int captureformat)
@@ -141,9 +116,17 @@ public class CameraManager : MonoBehaviour
 
     public void Capture()
     {
+        DateTime dt2 = new DateTime();
+        dt2 = DateTime.Now;
+        Predef.capturedDirectoryName = dt2.ToString("yyyyMMdd-HH_mm_ss");
+        string path = string.Format("{0}/{1}", Predef.ftpDirectoryName, Predef.capturedDirectoryName);
+        MakeDirectory(path);
+
+        Predef.workingFolder = path; 
+
         for (int i = 0; i < raspMachinelist.Count; i++)
         {
-            raspMachinelist[i].Capture();
+            raspMachinelist[i].Capture(path);
         }
     }
 
@@ -160,4 +143,12 @@ public class CameraManager : MonoBehaviour
         removeList.Add(rasp);
     }
 
+    private void MakeDirectory(string path)
+    {
+        DirectoryInfo di = new DirectoryInfo(path);
+        if (di.Exists == false)
+        {
+            di.Create();
+        }
+    }
 }

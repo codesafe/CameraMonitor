@@ -193,7 +193,7 @@ public class CameraObj : MonoBehaviour
             Predef.ftpDirectoryName, Predef.capturedDirectoryName,
             machineName, cameranum, "jpg");
 
-            string args = "-c -e " + path + " > " + outpath;
+            //string args = "-c -e " + path + " > " + outpath;
             //ProcessStartInfo p = new ProcessStartInfo(dcrawpath, args);
             //Process process = Process.Start(p);
 
@@ -238,7 +238,7 @@ public class CameraObj : MonoBehaviour
                 int errorCode = Marshal.GetHRForException(ex2) & ((1 << 16) - 1);
                 if ((ex2 is IOException) && (errorCode == ERROR_SHARING_VIOLATION || errorCode == ERROR_LOCK_VIOLATION))
                 {
-                    return true;
+                    return false;
                 }
             }
             finally
@@ -247,61 +247,37 @@ public class CameraObj : MonoBehaviour
                     stream.Close();
             }
         }
-        return false;
+        return true;
     }
 
     private IEnumerator ConvertRawToJpg(string originpath, string outpath)
     {
+        int retrycount = 0;
         while (true)
         {
-            bool t = !IsFileLocked(originpath);
-            if (t == true)
+            if (IsFileLocked(originpath) || retrycount > 10)
                 break;
+
             yield return new WaitForSeconds(1.0f);
+            retrycount++;
         }
         //yield return new WaitUntil(() => IsFileReady(originpath) == true);
         yield return new WaitForSeconds(1.0f);
         //yield return new WaitForSeconds(0.1f);
 
-        /*
-                FreeImageAPI.FREE_IMAGE_FORMAT format = FreeImageAPI.FreeImage.GetFileType(originpath, 0);
-                Debug.Log("FreeImage Format : " + format.ToString());
+        FreeImageAPI.FREE_IMAGE_FORMAT format = FreeImageAPI.FreeImage.GetFileType(originpath, 0);
+        Debug.Log("FreeImage Format : " + format.ToString());
 
-                FIBITMAP handle = FreeImageAPI.FreeImage.Load(format, originpath, FREE_IMAGE_LOAD_FLAGS.RAW_PREVIEW);
-                if( handle.IsNull )
-                {
-                    bool ret = FreeImageAPI.FreeImage.Save(FREE_IMAGE_FORMAT.FIF_JPEG, handle, outpath, FREE_IMAGE_SAVE_FLAGS.PNG_Z_BEST_SPEED);
-                    Debug.Log("FreeImage Save : " + (ret == true ? "OK" : "Fail"));
-                    FreeImageAPI.FreeImage.Unload(handle);
-                    handle.SetNull();
-                }
-                else
-                    Debug.Log("FreeImage handle is null ");
-
-        */
-
-        FIBITMAP dib = FreeImage.LoadEx(originpath);
-        if (dib.IsNull)
+        FIBITMAP handle = FreeImageAPI.FreeImage.Load(format, originpath, FREE_IMAGE_LOAD_FLAGS.RAW_PREVIEW);
+        if( !handle.IsNull )
         {
-            Debug.Log("Loading bitmap failed. Aborting.");
-            yield return null;
+            bool ret = FreeImageAPI.FreeImage.Save(FREE_IMAGE_FORMAT.FIF_JPEG, handle, outpath, FREE_IMAGE_SAVE_FLAGS.JPEG_QUALITYNORMAL);
+            Debug.Log("FreeImage Save : " + (ret == true ? "OK" : "Fail"));
+            FreeImageAPI.FreeImage.Unload(handle);
+            handle.SetNull();
         }
-
-        if (!FreeImage.SaveEx(ref dib, @"Sample.jpg", false))
-        {
-            Debug.Log("Saving bitmap failed.");
-        }
-
-        if (!FreeImage.SaveEx(
-            ref dib,
-            @"Sample",                          // No extension was selected so let 'SaveEx' decide.
-            FREE_IMAGE_FORMAT.FIF_JPEG,          // A format is needed this time.
-            FREE_IMAGE_SAVE_FLAGS.DEFAULT,      // PNG has no options so use default.
-            FREE_IMAGE_COLOR_DEPTH.FICD_AUTO, // 4bpp as result color depth.
-            true))                              // We're done so unload
-        {
-            FreeImage.UnloadEx(ref dib);
-        }
+        else
+            Debug.Log("FreeImage handle is null ");
 
         StartCoroutine(load_image_preview(outpath));
     }

@@ -21,6 +21,8 @@ public class Predef
     static public string capturedDirectoryName;
     static public string capturedFileExt = "jpg";
 
+    static public string workingFolder = "";
+
     // Packet
     static public char PACKET_TRY_CONNECT = (char)0x05;     // connect to server
     static public char PACKET_SHOT = (char)0x10;        	// shot picture

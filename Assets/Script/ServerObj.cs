@@ -1,9 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Collections;
-using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.UI;
+
+//using FreeImageAPI;
+//using System.Runtime.InteropServices;
+using SFB;
 
 public class ServerObj : MonoBehaviour
 {
@@ -18,6 +21,7 @@ public class ServerObj : MonoBehaviour
 
     [SerializeField] RawImage previewImage;
     [SerializeField] Text ftpPath;
+    [SerializeField] Text workingpath;
 
 
     private int iso_value;
@@ -58,6 +62,21 @@ public class ServerObj : MonoBehaviour
 
     private void ReadPath()
     {
+        if( PlayerPrefs.HasKey("FTP_PATH") == true )
+        {
+            Predef.ftpDirectoryName = PlayerPrefs.GetString("FTP_PATH");
+            Predef.workingFolder = Predef.ftpDirectoryName;
+
+            ftpPath.text = string.Format("Root path : {0}", Predef.ftpDirectoryName);
+            workingpath.text = Predef.workingFolder;
+        }
+        else
+        {
+            ftpPath.text = "Please Select FTP Path.";
+            workingpath.text = Predef.workingFolder;
+        }
+
+/*
         try
         {
             FileInfo theSourceFile = null;
@@ -65,13 +84,16 @@ public class ServerObj : MonoBehaviour
             theSourceFile = new FileInfo("./config.txt");
             reader = theSourceFile.OpenText();
             Predef.ftpDirectoryName = reader.ReadLine();
+            Predef.workingFolder = Predef.ftpDirectoryName;
 
-            ftpPath.text = string.Format("FTP Path:\n{0}", Predef.ftpDirectoryName);
+            ftpPath.text = string.Format("Root path : {0}", Predef.ftpDirectoryName);
+            workingpath.text = Predef.workingFolder;
         }
         catch (Exception ex)
         {
             ftpPath.text = "FTP Path ERR.";
         }
+*/
     }
 
     private void OnDestroy()
@@ -146,13 +168,14 @@ public class ServerObj : MonoBehaviour
         else
             Predef.capturedFileExt = "jpg";
 
-        UnityEngine.Debug.Log("Auto Focus!");
+        //UnityEngine.Debug.Log("Auto Focus!");
     }
 
     public void onClickCapture()
     {
         //CameraManager.getInstance().SendPacket(Predef.PACKET_SHOT);
         CameraManager.getInstance().Capture();
+        workingpath.text = Predef.workingFolder;
         UnityEngine.Debug.Log("Shot!");
     }
 
@@ -201,5 +224,23 @@ public class ServerObj : MonoBehaviour
         previewImage.texture = texTmp;
     }
 
+    public void OnOpenSelectFolder()
+    {
+        string [] paths = StandaloneFileBrowser.OpenFolderPanel("Select Folder", Predef.ftpDirectoryName, false);
+        if(paths.Length >0)
+        {
+            PlayerPrefs.SetString("FTP_PATH", paths[0]);
+            Predef.ftpDirectoryName = paths[0];
+            ftpPath.text = string.Format("Root path : {0}", Predef.ftpDirectoryName);
+            UnityEngine.Debug.Log(paths[0]);
+        }
+    }
 
+    public void OnOpenWorkingFolder()
+    {
+        string path = string.Format("file://{0}", Predef.workingFolder);
+        Application.OpenURL(path);
+        //Application.OpenURL("file://[dir]");
+        //EditorUtility.RevealInFinder(path)
+    }
 }
