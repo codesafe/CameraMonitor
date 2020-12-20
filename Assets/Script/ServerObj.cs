@@ -154,14 +154,13 @@ public class ServerObj : MonoBehaviour
     public void onClickReset()
     {
         CameraManager.getInstance().Reset();
+        btnCapture.GetComponent<Button>().interactable = true;
     }
 
-    public void onClickAutoFocus()
+    public void onClickSetParameter()
     {
-        CameraManager.getInstance().Reset();
-
-        //CameraManager.getInstance().SendPacket(Predef.PACKET_HALFPRESS, iso_value, shutterspeed_value, aperture_value, captureformat_value);
-        CameraManager.getInstance().SendAutoFocusWithParam(iso_value, shutterspeed_value, aperture_value, captureformat_value);
+        //CameraManager.getInstance().Reset();
+        CameraManager.getInstance().SendParameter(iso_value, shutterspeed_value, aperture_value, captureformat_value);
 
         if (captureformatString[captureformat_value] == "RAW + Large Fine JPEG" || captureformatString[captureformat_value] == "RAW")
             Predef.capturedFileExt = "raw";
@@ -169,6 +168,21 @@ public class ServerObj : MonoBehaviour
             Predef.capturedFileExt = "jpg";
 
         //UnityEngine.Debug.Log("Auto Focus!");
+        //btnCapture.GetComponent<Button>().interactable = true;
+    }
+
+    public void onClickAutoFocus()
+    {
+        CameraManager.getInstance().Reset();
+
+        CameraManager.getInstance().SendAutoFocus();
+//         if (captureformatString[captureformat_value] == "RAW + Large Fine JPEG" || captureformatString[captureformat_value] == "RAW")
+//             Predef.capturedFileExt = "raw";
+//         else
+//             Predef.capturedFileExt = "jpg";
+
+        //UnityEngine.Debug.Log("Auto Focus!");
+        btnCapture.GetComponent<Button>().interactable = true;
     }
 
     public void onClickCapture()
@@ -177,6 +191,7 @@ public class ServerObj : MonoBehaviour
         CameraManager.getInstance().Capture();
         workingpath.text = Predef.workingFolder;
         UnityEngine.Debug.Log("Shot!");
+        btnCapture.GetComponent<Button>().interactable = false;
     }
 
     public void OnISOValueChanged(int value)

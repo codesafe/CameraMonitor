@@ -107,8 +107,16 @@ public class Client
 // 일단 Client Disconnect은 생각하지 않는다
 public class CameraObj : MonoBehaviour
 {
+    public enum CAMICON
+    {
+        ICON_GRAY,
+        ICON_MID,
+        ICON_NORMAL
+    };
+
     [SerializeField] Sprite normal;
     [SerializeField] Sprite normal_gray;
+    [SerializeField] Sprite normal_mid;
 
     [SerializeField] Image bg;
     [SerializeField] Image icon;
@@ -122,7 +130,7 @@ public class CameraObj : MonoBehaviour
 
     void Start()
     {
-        SetFocused(false);
+        SetIcon(CAMICON.ICON_GRAY);
         //id.text = "";
         progressSize = progress.rectTransform.sizeDelta;
         //progressSize.x = 71;
@@ -166,9 +174,23 @@ public class CameraObj : MonoBehaviour
         }
     }
 
-    public void SetFocused(bool focused)
+    public void SetIcon(CAMICON _icon)
     {
-        icon.sprite = focused ? normal : normal_gray;
+        //icon.sprite = focused ? normal : normal_gray;
+
+        switch(_icon)
+        {
+            case CAMICON.ICON_GRAY:
+                icon.sprite = normal_gray;
+                break;
+            case CAMICON.ICON_MID:
+                icon.sprite = normal_mid;
+                break;
+            case CAMICON.ICON_NORMAL:
+                icon.sprite = normal;
+                break;
+        }
+
     }
 
 //     private void Update()
@@ -326,6 +348,6 @@ public class CameraObj : MonoBehaviour
     {
         preview.enabled = false;
         progress.enabled = false;
-        SetFocused(false);
+        SetIcon(CAMICON.ICON_GRAY);
     }
 }

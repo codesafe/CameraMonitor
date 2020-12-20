@@ -29,17 +29,16 @@ public class Predef
     static public char PACKET_HALFPRESS = (char)0x20;   	// auto focus
     static public char PACKET_HALFRELEASE = (char)0x21; 	// auto focus cancel
 
-    static public char PACKET_ISO = (char)0x31;
-    static public char PACKET_APERTURE = (char)0x32;
-    static public char PACKET_SHUTTERSPEED = (char)0x33;
+    static public char PACKET_SET_PARAMETER = (char)0x30;   // 파라메터 조정
 
     static public char PACKET_FORCE_UPLOAD = (char)0x40;
     static public char PACKET_UPLOAD_PROGRESS = (char)0x41;
     static public char PACKET_UPLOAD_DONE = (char)0x42;
 
-    static public char PACKET_AUTOFOCUS_RESULT = (char)0x50;
+    static public char PACKET_SETPARAMETER_RESULT = (char)0x50;
+    static public char PACKET_AUTOFOCUS_RESULT = (char)0x51;
 
-    static public char RESPONSE_OK = (char)0x05;
-    static public char RESPONSE_FAIL = (char)0x06;
+    static public char RESPONSE_OK = (char)0x07;
+    static public char RESPONSE_FAIL = (char)0x08;
 }
 

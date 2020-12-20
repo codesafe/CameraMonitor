@@ -70,11 +70,24 @@ public class RaspObj : MonoBehaviour
 
                 // TODO. 패킷 받았다. 처리해야한다
                 char packet = Convert.ToChar(buf[0]);
-                if( packet == Predef.PACKET_AUTOFOCUS_RESULT)
+                if (packet == Predef.PACKET_SETPARAMETER_RESULT)
                 {
                     int cameraNum = (int)Convert.ToChar(buf[1]);
                     int result = (int)Convert.ToChar(buf[2]);
-                    cameraobjList[cameraNum].SetFocused(result == Predef.RESPONSE_OK);
+
+                    if( result == Predef.RESPONSE_OK )
+                        cameraobjList[cameraNum].SetIcon(CameraObj.CAMICON.ICON_MID);
+                    else
+                        cameraobjList[cameraNum].SetIcon(CameraObj.CAMICON.ICON_GRAY);
+                }
+                else if ( packet == Predef.PACKET_AUTOFOCUS_RESULT)
+                {
+                    int cameraNum = (int)Convert.ToChar(buf[1]);
+                    int result = (int)Convert.ToChar(buf[2]);
+                    if (result == Predef.RESPONSE_OK)
+                        cameraobjList[cameraNum].SetIcon(CameraObj.CAMICON.ICON_NORMAL);
+                    else
+                        cameraobjList[cameraNum].SetIcon(CameraObj.CAMICON.ICON_GRAY);
                 }
                 else if( packet == Predef.PACKET_UPLOAD_PROGRESS )
                 {
@@ -104,16 +117,24 @@ public class RaspObj : MonoBehaviour
         return false;
     }
 
-    public void SendAutoFocusWithParam(int iso_value, int shutterspeed_value, int aperture_value, int captureformat)
+    public void SendParameter(int iso_value, int shutterspeed_value, int aperture_value, int captureformat)
     {
         byte[] data = new byte[Predef.UDP_BUFFER];
-        char packet = Predef.PACKET_HALFPRESS;
+        char packet = Predef.PACKET_SET_PARAMETER;
         data[0] = Convert.ToByte(packet);
         data[1] = Convert.ToByte(iso_value);
         data[2] = Convert.ToByte(shutterspeed_value);
         data[3] = Convert.ToByte(aperture_value);
         data[4] = Convert.ToByte(captureformat);
 
+        raspsocket.SendUdpPacket(data, Predef.UDP_BUFFER);
+    }
+
+    public void SendAutoFocus()
+    {
+        byte[] data = new byte[Predef.UDP_BUFFER];
+        char packet = Predef.PACKET_HALFPRESS;
+        data[0] = Convert.ToByte(packet);
         raspsocket.SendUdpPacket(data, Predef.UDP_BUFFER);
     }
 
@@ -139,7 +160,7 @@ public class RaspObj : MonoBehaviour
         for (int i = 0; i < cameraobjList.Count; i++)
         {
             cameraobjList[i].Reset();
-            cameraobjList[i].SetFocused(true);
+            cameraobjList[i].SetIcon(CameraObj.CAMICON.ICON_NORMAL);
         }
     }
 

@@ -17,8 +17,7 @@ public class CameraManager : MonoBehaviour
 
     private static CameraManager _instance;
 
-    Vector2 pivot = new Vector2(-450, 310);
-    Vector2 stride = new Vector2(100, -100);
+    Vector2 pivot = new Vector2(-460, 290);
 
     private List<string> removeList = new List<string>();
     private List<RaspObj> raspMachinelist = new List<RaspObj>();
@@ -105,13 +104,19 @@ public class CameraManager : MonoBehaviour
         }
     }
 
-    public void SendAutoFocusWithParam(int iso_value, int shutterspeed_value, int aperture_value, int captureformat)
+    public void SendParameter(int iso_value, int shutterspeed_value, int aperture_value, int captureformat)
     {
         for (int i = 0; i < raspMachinelist.Count; i++)
         {
-            raspMachinelist[i].SendAutoFocusWithParam(iso_value, shutterspeed_value, aperture_value, captureformat);
+            raspMachinelist[i].SendParameter(iso_value, shutterspeed_value, aperture_value, captureformat);
         }
-
+    }
+    public void SendAutoFocus()
+    {
+        for (int i = 0; i < raspMachinelist.Count; i++)
+        {
+            raspMachinelist[i].SendAutoFocus();
+        }
     }
 
     public void Capture()
