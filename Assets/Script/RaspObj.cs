@@ -89,7 +89,16 @@ public class RaspObj : MonoBehaviour
                     else
                         cameraobjList[cameraNum].SetIcon(CameraObj.CAMICON.ICON_GRAY);
                 }
-                else if( packet == Predef.PACKET_UPLOAD_PROGRESS )
+                else if (packet == Predef.PACKET_SHOT_RESULT)
+                {
+                    int cameraNum = (int)Convert.ToChar(buf[1]);
+                    int result = (int)Convert.ToChar(buf[2]);
+                    if (result == Predef.RESPONSE_OK)
+                        cameraobjList[cameraNum].SetIcon(CameraObj.CAMICON.ICON_NORMAL);
+                    else
+                        cameraobjList[cameraNum].SetIcon(CameraObj.CAMICON.ICON_GRAY);
+                }
+                else if ( packet == Predef.PACKET_UPLOAD_PROGRESS )
                 {
                     int cameraNum = (int)Convert.ToChar(buf[1]);
                     int percent = (int)Convert.ToChar(buf[2]);

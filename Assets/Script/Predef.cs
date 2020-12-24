@@ -13,6 +13,7 @@ public class Predef
 
     static public int tcpport = 8888;
     static public int udpport = 11000;
+    static public int udpbroadcastport = 9999;
 
     static public int TCP_BUFFER = 16;
     static public int UDP_BUFFER = 32;
@@ -37,8 +38,13 @@ public class Predef
 
     static public char PACKET_SETPARAMETER_RESULT = (char)0x50;
     static public char PACKET_AUTOFOCUS_RESULT = (char)0x51;
+    static public char PACKET_SHOT_RESULT = (char)0x52;
 
     static public char RESPONSE_OK = (char)0x07;
     static public char RESPONSE_FAIL = (char)0x08;
+
+    // Broadcast info
+    static public int UDP_BROADCAST_BUFFER = 32;
+    static public char UDP_BROADCAST_PACKET = (char)0xA0;
 }
 

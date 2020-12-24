@@ -111,12 +111,14 @@ public class CameraObj : MonoBehaviour
     {
         ICON_GRAY,
         ICON_MID,
-        ICON_NORMAL
+        ICON_NORMAL,
+        ICON_ERR
     };
 
     [SerializeField] Sprite normal;
     [SerializeField] Sprite normal_gray;
     [SerializeField] Sprite normal_mid;
+    [SerializeField] Sprite normal_err;
 
     [SerializeField] Image bg;
     [SerializeField] Image icon;
@@ -188,6 +190,9 @@ public class CameraObj : MonoBehaviour
                 break;
             case CAMICON.ICON_NORMAL:
                 icon.sprite = normal;
+                break;
+            case CAMICON.ICON_ERR:
+                icon.sprite = normal_err;
                 break;
         }
 

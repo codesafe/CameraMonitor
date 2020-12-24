@@ -410,6 +410,7 @@ MonoBehaviour:
   normal: {fileID: 21300000, guid: 974819c416650334e8d79fdb1c6c60a1, type: 3}
   normal_gray: {fileID: 21300000, guid: 029edff45e8974046b5a66bdef19f3fa, type: 3}
   normal_mid: {fileID: 21300000, guid: e1084a907427fae4cabb841bc96decf2, type: 3}
+  normal_err: {fileID: 21300000, guid: 886a1a3cdafc2c643a5d9b760ab02f12, type: 3}
   bg: {fileID: 7499497859935192596}
   icon: {fileID: 890091123047041769}
   progress: {fileID: 268548067}
