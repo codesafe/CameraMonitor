@@ -20,7 +20,7 @@ public class CameraManager : MonoBehaviour
     Vector2 pivot = new Vector2(-460, 290);
 
     private List<string> removeList = new List<string>();
-    private List<RaspObj> raspMachinelist = new List<RaspObj>();
+    private RaspObj [] raspMachinelist = new RaspObj[Predef.MAX_RASPI];
 
     public static CameraManager getInstance()
     {
@@ -32,8 +32,34 @@ public class CameraManager : MonoBehaviour
         _instance = this;
     }
 
+    int AddRaspMachine(RaspObj machine)
+    {
+        for(int i=0; i< Predef.MAX_RASPI; i++)
+        {
+            if (raspMachinelist[i] == null)
+            {
+                raspMachinelist[i] = machine;
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    void RemoveRaspMachine(RaspObj machine)
+    {
+        for (int i = 0; i < Predef.MAX_RASPI; i++)
+        {
+            if (raspMachinelist[i] == machine)
+            {
+                Destroy(raspMachinelist[i].gameObject);
+                raspMachinelist[i] = null;
+            }
+        }
+    }
+
     void Update()
     {
+/*
         if (Input.GetKeyDown("space"))
         {
             RaspObj raspobj = Instantiate(raspprefab, transform);
@@ -41,12 +67,13 @@ public class CameraManager : MonoBehaviour
             raspMachinelist.Add(raspobj);
 
             Refresh();
-        }
+        }*/
 
         AcceptNewRasp();
         UpdateRasp();
     }
 
+    // Rasp socket 연결이 들어옴
     private void AcceptNewRasp()
     {
         List<Socket> socketlist = new List<Socket>();
@@ -70,8 +97,11 @@ public class CameraManager : MonoBehaviour
             machinename = machinename.Replace("\0", string.Empty);
 
             RaspObj raspobj = Instantiate(raspprefab, transform);
-            raspobj.Init(clientsocket, machinename, cameranum);
-            raspMachinelist.Add(raspobj);
+            int machinenum = AddRaspMachine(raspobj);
+            raspobj.Init(clientsocket, machinename, machinenum, cameranum);
+            //raspMachinelist.Add(raspobj);
+
+            raspobj.SendMachineNumber(machinenum);
 
             Debug.Log(machinename);
         }
@@ -86,36 +116,38 @@ public class CameraManager : MonoBehaviour
     void UpdateRasp()
     {
         // Disconnected 된것들 제거
-        for (int i = raspMachinelist.Count - 1; i >= 0; i--)
+        for (int i = 0; i<raspMachinelist.Length; i++)
         {
-            if (raspMachinelist[i].IsDisconnected())
+            if (raspMachinelist[i] != null && raspMachinelist[i].IsDisconnected())
             {
-                Destroy(raspMachinelist[i].gameObject);
-                raspMachinelist.RemoveAt(i);
+                RemoveRaspMachine(raspMachinelist[i]);
             }
         }
     }
 
     void Refresh()
     {
-        for(int i=0; i< raspMachinelist.Count; i++)
+        for(int i=0; i< raspMachinelist.Length; i++)
         {
-            raspMachinelist[i].transform.localPosition = new Vector3(pivot.x, pivot.y - (i * 70), 0);
+            if (raspMachinelist[i] != null)
+               raspMachinelist[i].transform.localPosition = new Vector3(pivot.x, pivot.y - (i * 70), 0);
         }
     }
 
     public void SendParameter(int iso_value, int shutterspeed_value, int aperture_value, int captureformat)
     {
-        for (int i = 0; i < raspMachinelist.Count; i++)
+        for (int i = 0; i < raspMachinelist.Length; i++)
         {
-            raspMachinelist[i].SendParameter(iso_value, shutterspeed_value, aperture_value, captureformat);
+            if (raspMachinelist[i] != null)
+                raspMachinelist[i].SendParameter(iso_value, shutterspeed_value, aperture_value, captureformat);
         }
     }
     public void SendAutoFocus()
     {
-        for (int i = 0; i < raspMachinelist.Count; i++)
+        for (int i = 0; i < raspMachinelist.Length; i++)
         {
-            raspMachinelist[i].SendAutoFocus();
+            if (raspMachinelist[i] != null)
+                raspMachinelist[i].SendAutoFocus();
         }
     }
 
@@ -129,17 +161,19 @@ public class CameraManager : MonoBehaviour
 
         Predef.workingFolder = path; 
 
-        for (int i = 0; i < raspMachinelist.Count; i++)
+        for (int i = 0; i < raspMachinelist.Length; i++)
         {
-            raspMachinelist[i].Capture(path);
+            if (raspMachinelist[i] != null)
+                raspMachinelist[i].Capture();
         }
     }
 
     public void Reset()
     {
-        for (int i = 0; i < raspMachinelist.Count; i++)
+        for (int i = 0; i < raspMachinelist.Length; i++)
         {
-            raspMachinelist[i].Reset();
+            if (raspMachinelist[i] != null)
+                raspMachinelist[i].Reset();
         }
     }
 

@@ -40,7 +40,7 @@ public class UdpBroadCast : MonoBehaviour
 
                 //Debug.Log("Send broadcast : " + sendlist[i].broadcastip.ToString());
             }
-            yield return new WaitForSecondsRealtime(5.0f);
+            yield return new WaitForSecondsRealtime(3.0f);
         }
     }
 

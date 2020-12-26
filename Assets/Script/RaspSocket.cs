@@ -11,7 +11,7 @@ public class RaspSocket
 {
     private bool disconnected = false;
     private Socket tcpsocket;
-    private Socket udpSocket;
+//    private Socket udpSocket;
 
     private Thread Socket_Thread = null;
     private bool loop = true;
@@ -31,8 +31,8 @@ public class RaspSocket
             string[] array = address.Split(new char[] { ':' });
             ipAddress = array[0];
 
-            ipep = new IPEndPoint(IPAddress.Parse(ipAddress), Predef.udpport);
-            udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+//             ipep = new IPEndPoint(IPAddress.Parse(ipAddress), Predef.udpport);
+//             udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
             Socket_Thread = new Thread(ReadWorker);
             Socket_Thread.Start();
@@ -112,11 +112,16 @@ public class RaspSocket
         return packet;
     }
 
-    public void SendUdpPacket(byte[] data, int size)
+    public void SendTcpPacket(byte[] data, int size)
     {
-        //data[0] = Convert.ToByte(packet);
-        udpSocket.SendTo(data, size, SocketFlags.None, ipep);
+        tcpsocket.Send(data, size, SocketFlags.None);
     }
+
+//     public void SendUdpPacket(byte[] data, int size)
+//     {
+//         //data[0] = Convert.ToByte(packet);
+//         udpSocket.SendTo(data, size, SocketFlags.None, ipep);
+//     }
 
     public bool IsDisconnected()
     {

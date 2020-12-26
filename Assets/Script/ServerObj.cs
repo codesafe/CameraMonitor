@@ -187,11 +187,10 @@ public class ServerObj : MonoBehaviour
 
     public void onClickCapture()
     {
-        //CameraManager.getInstance().SendPacket(Predef.PACKET_SHOT);
         CameraManager.getInstance().Capture();
         workingpath.text = Predef.workingFolder;
         UnityEngine.Debug.Log("Shot!");
-        btnCapture.GetComponent<Button>().interactable = false;
+       // btnCapture.GetComponent<Button>().interactable = false;
     }
 
     public void OnISOValueChanged(int value)

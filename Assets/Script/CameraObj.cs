@@ -3,6 +3,8 @@ using System.IO;
 using System.Collections;
 //using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Net;
+using System.Net.Sockets;
 
 using UnityEngine;
 using UnityEngine.UI;
@@ -129,6 +131,8 @@ public class CameraObj : MonoBehaviour
     private Vector2 progressSize;
     private Vector2 previewSize;
     public int cameranum;
+    private Socket udpSocket;
+    private IPEndPoint ipep;
 
     void Start()
     {
@@ -152,10 +156,13 @@ public class CameraObj : MonoBehaviour
 
     }
 
-    public void Init(int camnum)
+    public void Init(int camnum, string ipAddress, int port)
     {
         cameranum = camnum;
         id.text = camnum.ToString();
+
+        ipep = new IPEndPoint(IPAddress.Parse(ipAddress), port);
+        udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
     }
 
     public void SetDownloadProgress(int percent)
@@ -354,5 +361,11 @@ public class CameraObj : MonoBehaviour
         preview.enabled = false;
         progress.enabled = false;
         SetIcon(CAMICON.ICON_GRAY);
+    }
+
+    public void SendUdpPacket(byte[] data, int size)
+    {
+        //data[0] = Convert.ToByte(packet);
+        udpSocket.SendTo(data, size, SocketFlags.None, ipep);
     }
 }

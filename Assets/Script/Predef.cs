@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 
 public class Predef
 {
+    static public int MAX_RASPI = 20;       // 라즈베리는 20대까지만
+
     static public string defaultIso = "100";
     static public string defaultAperture = "100";
     static public string defaultShutterSpeed = "100";
