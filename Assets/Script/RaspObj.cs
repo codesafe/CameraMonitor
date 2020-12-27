@@ -27,33 +27,20 @@ public class RaspObj : MonoBehaviour
             raspsocket.Destroy();
 
         for (int i=0; i<cameraobjList.Count; i++)
+        {
+            CameraProperty.getInstance().RemoveCamera(cameraobjList[i]);
             Destroy(cameraobjList[i]);
+        }
+
 
         cameraobjList.Clear();
     }
 
-    public void Init(Socket _socket, string name, int machinenum, int _camnum)
+    public void Init(Socket _socket, int _machinenum)
     {
-        machineName = name;
-        nameText.text = name;
-        camnum = _camnum;
-        this.machinenum = machinenum;
-
+        machinenum = _machinenum;
         raspsocket = new RaspSocket(_socket);
-
-        string address = _socket.RemoteEndPoint.ToString();
-        string[] array = address.Split(new char[] { ':' });
-        string ipAddress = array[0];
-
-
-        for (int i = 0; i < _camnum; i++)
-        {
-            // 포트 계산 : 11000 + (머신번호*100) + 카메라 번호
-            int udpport = Predef.udpport + (machinenum * 100) + i;
-            CameraObj obj = Instantiate(prefab, cameras.transform);
-            obj.Init(i, ipAddress, udpport);
-            cameraobjList.Add(obj);
-        }
+        SendMachineNumber(machinenum);
 
         Refresh();
     }
@@ -77,9 +64,48 @@ public class RaspObj : MonoBehaviour
                 if (buf == null)
                     break;
 
-                // TODO. 패킷 받았다. 처리해야한다
+                // 패킷 받았다. 처리해야한다
                 char packet = Convert.ToChar(buf[0]);
-                if (packet == Predef.PACKET_SETPARAMETER_RESULT)
+
+                if (packet == Predef.PACKET_MACHINE_INFO)
+                {
+                    // 몇대의 카메라?
+                    int n = (int)Convert.ToChar(buf[1]);
+                    string _machinename = Encoding.UTF8.GetString(buf, 2, Predef.TCP_BUFFER - 2);
+                    _machinename = _machinename.Replace("\0", string.Empty);
+
+                    machineName = _machinename;
+                    nameText.text = _machinename;
+
+                    camnum = n;
+
+                    string address = raspsocket.GetSocket().RemoteEndPoint.ToString();
+                    string[] array = address.Split(new char[] { ':' });
+                    string ipAddress = array[0];
+
+                    for (int i = 0; i < camnum; i++)
+                    {
+                        // 포트 계산 : 11000 + (머신번호*100) + 카메라 번호
+                        int udpport = Predef.udpport + (machinenum * 100) + i;
+                        CameraObj obj = Instantiate(prefab, cameras.transform);
+                        obj.Init(i, ipAddress, udpport);
+                        cameraobjList.Add(obj);
+
+                        CameraProperty.getInstance().AddCamera(obj);
+                    }
+
+                    Refresh();
+                }
+                else if (packet == Predef.PACKET_CAMERA_NAME)
+                {
+                    // 카메라 이름 수신
+                    int cameraNum = (int)Convert.ToChar(buf[1]);
+                    string cameraname = Encoding.UTF8.GetString(buf, 2, Predef.TCP_BUFFER-2);
+                    cameraname = cameraname.Replace("\0", string.Empty);
+                    SetCameraName(cameraNum, cameraname);
+
+                }
+                else if (packet == Predef.PACKET_SETPARAMETER_RESULT)
                 {
                     int cameraNum = (int)Convert.ToChar(buf[1]);
                     int result = (int)Convert.ToChar(buf[2]);
@@ -135,7 +161,7 @@ public class RaspObj : MonoBehaviour
         return false;
     }
 
-    // 이건 머신한테 보내는것 (필요없을수도 있겠다)
+    // 이건 머신번호 (포트계산을 위하여)
     public void SendMachineNumber(int num)
     {
         byte[] data = new byte[Predef.TCP_BUFFER];
@@ -155,9 +181,17 @@ public class RaspObj : MonoBehaviour
         data[4] = Convert.ToByte(captureformat);
 
         for(int i=0; i< cameraobjList.Count; i++)
-            cameraobjList[i].SendUdpPacket(data, Predef.UDP_BUFFER);
+        {
+            // applydelaytime이 실제로 적용될 값이다
+            byte[] FloatToByte = BitConverter.GetBytes(cameraobjList[i].applydelaytime);
+            data[5] = FloatToByte[0];
+            data[6] = FloatToByte[1];
+            data[7] = FloatToByte[2];
+            data[8] = FloatToByte[3];
 
-        //raspsocket.SendUdpPacket(data, Predef.UDP_BUFFER);
+//            Buffer.BlockCopy(FloatToByte, 0, data, 5, 4);
+            cameraobjList[i].SendUdpPacket(data, Predef.UDP_BUFFER);
+        }
     }
 
     // 포커스 잡아라
@@ -169,8 +203,6 @@ public class RaspObj : MonoBehaviour
 
         for (int i = 0; i < cameraobjList.Count; i++)
             cameraobjList[i].SendUdpPacket(data, Predef.UDP_BUFFER);
-
-        //raspsocket.SendUdpPacket(data, Predef.UDP_BUFFER);
     }
 
     // 찍어
@@ -188,8 +220,6 @@ public class RaspObj : MonoBehaviour
         for (int i = 0; i < cameraobjList.Count; i++)
             cameraobjList[i].SendUdpPacket(data, Predef.UDP_BUFFER);
 
-        //raspsocket.SendUdpPacket(data, Predef.UDP_BUFFER);
-
         for (int i = 0; i < cameraobjList.Count; i++)
         {
             cameraobjList[i].Reset();
@@ -203,5 +233,10 @@ public class RaspObj : MonoBehaviour
         {
             cameraobjList[i].Reset();
         }
+    }
+
+    public void SetCameraName(int camnum, string cameraName)
+    {
+        cameraobjList[camnum].SetcameraName(cameraName);
     }
 }

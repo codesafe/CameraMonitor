@@ -159,7 +159,6 @@ public class ServerObj : MonoBehaviour
 
     public void onClickSetParameter()
     {
-        //CameraManager.getInstance().Reset();
         CameraManager.getInstance().SendParameter(iso_value, shutterspeed_value, aperture_value, captureformat_value);
 
         if (captureformatString[captureformat_value] == "RAW + Large Fine JPEG" || captureformatString[captureformat_value] == "RAW")
@@ -167,7 +166,6 @@ public class ServerObj : MonoBehaviour
         else
             Predef.capturedFileExt = "jpg";
 
-        //UnityEngine.Debug.Log("Auto Focus!");
         //btnCapture.GetComponent<Button>().interactable = true;
     }
 
@@ -190,7 +188,7 @@ public class ServerObj : MonoBehaviour
         CameraManager.getInstance().Capture();
         workingpath.text = Predef.workingFolder;
         UnityEngine.Debug.Log("Shot!");
-       // btnCapture.GetComponent<Button>().interactable = false;
+        btnCapture.GetComponent<Button>().interactable = false;
     }
 
     public void OnISOValueChanged(int value)

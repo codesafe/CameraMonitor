@@ -41,41 +41,35 @@ public class RaspSocket
 
     private void ReadWorker()
     {
-        //IPEndPoint clientep = (IPEndPoint)socket.RemoteEndPoint;
-        //NetworkStream recvStm = new NetworkStream(socket);
-
-        // 카메라 번호를 알려줌
-        //         byte[] sendBuf = new byte[Predef.TCP_BUFFER];
-        //         sendBuf[0] = Convert.ToByte(camnum);
-        //         socket.Send(sendBuf, Predef.TCP_BUFFER, SocketFlags.None);
-
         while (loop)
         {
             try
             {
                 byte[] receiveBuffer = new byte[Predef.TCP_BUFFER];
 
-                //int recvn = recvStm.Read(receiveBuffer, 0, Predef.TCP_BUFFER);
-                int recvn = tcpsocket.Receive(receiveBuffer, 0, Predef.TCP_BUFFER, SocketFlags.None);
-
-                if (recvn == 0)
+                int totalRecv = 0;
+                while(true)
                 {
-                    Debug.Log("Close Socket");
-                    tcpsocket.Close();
-                    loop = false;
-                    disconnected = true;
-                    continue;
+                    int recv = tcpsocket.Receive(receiveBuffer, totalRecv, Predef.TCP_BUFFER - totalRecv, SocketFlags.None);
+                    if (recv <= 0)
+                    {
+                        tcpsocket.Close();
+                        loop = false;
+                        disconnected = true;
+                        Debug.Log("Close Socket");
+                        break;
+                    }
+
+                    totalRecv += recv;
+                    if (totalRecv >= Predef.TCP_BUFFER)
+                        break;
                 }
 
                 lock (lockObject)
                 {
-                    //Debug.Log("Recv Packet");
                     packetList.Add(receiveBuffer);
                 }
-                //string Test = Encoding.Default.GetString(receiveBuffer);
-                //Debug.Log(Test);
             }
-
             catch (Exception e)
             {
                 loop = false;
@@ -126,6 +120,11 @@ public class RaspSocket
     public bool IsDisconnected()
     {
         return disconnected;
+    }
+
+    public Socket GetSocket()
+    {
+        return tcpsocket;
     }
 
 }

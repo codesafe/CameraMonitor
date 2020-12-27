@@ -127,12 +127,17 @@ public class CameraObj : MonoBehaviour
     [SerializeField] Image progress;
     [SerializeField] Text id;
     [SerializeField] RawImage preview;
+    [SerializeField] Text camName;
 
     private Vector2 progressSize;
     private Vector2 previewSize;
-    public int cameranum;
     private Socket udpSocket;
     private IPEndPoint ipep;
+
+    public int cameranum;
+    public string cameraName;
+    public float delaytime = 0;
+    public float applydelaytime = 0;    // 실제로 모든 카메라를 통합한 적용값
 
     void Start()
     {
@@ -318,24 +323,8 @@ public class CameraObj : MonoBehaviour
 
     public void OnClick()
     {
-//         Vector2 screenpos = RectTransformUtility.WorldToScreenPoint(null, preview.transform.position);
-// 
-//         float fixx = 0;
-//         float fixy = 0;
-//         if ( screenpos.y + (previewSize.y/2) >= Screen.height )
-//         {
-//             fixy = -previewSize.y + (Screen.height - screenpos.y);
-//         }
-// 
-//         if (screenpos.x + (previewSize.x / 2) >= Screen.width)
-//         {
-//             fixx = -previewSize.x + (Screen.width - screenpos.x);
-//         }
-//         preview.transform.localPosition = new Vector3(fixx, fixy, 0);
-// 
-//         preview.enabled = true;
-//         string path = string.Format("E:/ftp/name-{0}.jpg", cameranum);
-//         StartCoroutine(load_image_preview(path));
+        CameraProperty.getInstance().SetSelectCamera(this);
+        //Debug.Log("Onclick");
     }
 
     private IEnumerator load_image_preview(string _path)
@@ -368,4 +357,20 @@ public class CameraObj : MonoBehaviour
         //data[0] = Convert.ToByte(packet);
         udpSocket.SendTo(data, size, SocketFlags.None, ipep);
     }
+
+    public void SetcameraName(string _name)
+    {
+        cameraName = _name;
+        camName.text = cameraName;
+    }
+
+    public void SetSelected(bool enable)
+    {
+        Color selcolor, normalcolor;
+        
+        ColorUtility.TryParseHtmlString("#FFFFFFFF", out normalcolor);
+        ColorUtility.TryParseHtmlString("#00FFB6FF", out selcolor);
+        bg.color = enable ? selcolor : normalcolor;
+    }
+
 }

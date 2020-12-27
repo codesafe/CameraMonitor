@@ -17,7 +17,7 @@ public class Predef
     static public int udpport = 11000;
     static public int udpbroadcastport = 9999;
 
-    static public int TCP_BUFFER = 16;
+    static public int TCP_BUFFER = 32;
     static public int UDP_BUFFER = 32;
 
     static public string ftpDirectoryName;
@@ -27,7 +27,10 @@ public class Predef
     static public string workingFolder = "";
 
     // Packet
-    static public char PACKET_TRY_CONNECT = (char)0x05;     // connect to server
+
+    static public char PACKET_MACHINE_INFO = (char)0x08;     // 머신 정보
+    static public char PACKET_CAMERA_NAME = (char)0x09;     // 카메라 이름
+
     static public char PACKET_SHOT = (char)0x10;        	// shot picture
     static public char PACKET_HALFPRESS = (char)0x20;   	// auto focus
     static public char PACKET_HALFRELEASE = (char)0x21; 	// auto focus cancel

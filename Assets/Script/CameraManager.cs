@@ -87,28 +87,9 @@ public class CameraManager : MonoBehaviour
 
     private void AddRaspMachine(Socket clientsocket)
     {
-        byte[] receiveBuffer = new byte[Predef.TCP_BUFFER];
-        int recv = clientsocket.Receive(receiveBuffer, 0, Predef.TCP_BUFFER, SocketFlags.None);
-
-        if ( recv > 0 )
-        {
-            int cameranum = Convert.ToInt32(receiveBuffer[0]);
-            string machinename = Encoding.UTF8.GetString(receiveBuffer, 1, Predef.TCP_BUFFER - 1);
-            machinename = machinename.Replace("\0", string.Empty);
-
-            RaspObj raspobj = Instantiate(raspprefab, transform);
-            int machinenum = AddRaspMachine(raspobj);
-            raspobj.Init(clientsocket, machinename, machinenum, cameranum);
-            //raspMachinelist.Add(raspobj);
-
-            raspobj.SendMachineNumber(machinenum);
-
-            Debug.Log(machinename);
-        }
-        else
-        {
-            Debug.Log("Disconnect RaspMachine");
-        }
+        RaspObj raspobj = Instantiate(raspprefab, transform);
+        int machinenum = AddRaspMachine(raspobj);
+        raspobj.Init(clientsocket, machinenum);
 
         Refresh();
     }
