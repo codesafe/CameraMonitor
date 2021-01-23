@@ -188,7 +188,7 @@ public class ServerObj : MonoBehaviour
         CameraManager.getInstance().Capture();
         workingpath.text = Predef.workingFolder;
         UnityEngine.Debug.Log("Shot!");
-        btnCapture.GetComponent<Button>().interactable = false;
+        //btnCapture.GetComponent<Button>().interactable = false;
     }
 
     public void OnISOValueChanged(int value)

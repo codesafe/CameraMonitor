@@ -166,8 +166,8 @@ public class CameraObj : MonoBehaviour
         cameranum = camnum;
         id.text = camnum.ToString();
 
-        ipep = new IPEndPoint(IPAddress.Parse(ipAddress), port);
-        udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+//         ipep = new IPEndPoint(IPAddress.Parse(ipAddress), port);
+//         udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
     }
 
     public void SetDownloadProgress(int percent)

@@ -102,6 +102,7 @@ public class CameraManager : MonoBehaviour
             if (raspMachinelist[i] != null && raspMachinelist[i].IsDisconnected())
             {
                 RemoveRaspMachine(raspMachinelist[i]);
+                Refresh();
             }
         }
     }

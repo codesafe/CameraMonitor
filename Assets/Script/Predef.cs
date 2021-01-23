@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 
 public class Predef
 {
+
+    static public int RASP_SLAVE = 0;       // 슬레이브 라즈베리
+    static public int RASP_MASTER = 1;      // 마스터 라즈베리
+
     static public int MAX_RASPI = 20;       // 라즈베리는 20대까지만
 
     static public string defaultIso = "100";
@@ -27,13 +31,13 @@ public class Predef
     static public string workingFolder = "";
 
     // Packet
-
+    static public char PACKET_MACHINE_NUMBER = (char)0x07;   // 머신 번호 ( Server -> Rasp )
     static public char PACKET_MACHINE_INFO = (char)0x08;     // 머신 정보
     static public char PACKET_CAMERA_NAME = (char)0x09;     // 카메라 이름
 
     static public char PACKET_SHOT = (char)0x10;        	// shot picture
-    static public char PACKET_HALFPRESS = (char)0x20;   	// auto focus
-    static public char PACKET_HALFRELEASE = (char)0x21; 	// auto focus cancel
+    static public char PACKET_AUTOFOCUS = (char)0x20;   	// auto focus
+
 
     static public char PACKET_SET_PARAMETER = (char)0x30;   // 파라메터 조정
 
