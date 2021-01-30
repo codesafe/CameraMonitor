@@ -194,41 +194,38 @@ public class RaspObj : MonoBehaviour
             data[6] = FloatToByte[1];
             data[7] = FloatToByte[2];
             data[8] = FloatToByte[3];
-//            Buffer.BlockCopy(FloatToByte, 0, data, 5, 4);
-//            cameraobjList[i].SendUdpPacket(data, Predef.UDP_BUFFER);
         }
 
         raspsocket.SendTcpPacket(data, Predef.TCP_BUFFER);
     }
 
-    // 포커스 잡아라
+    // 포커스 잡아라 / 여기에 경로도 포함
     public void SendAutoFocus()
     {
         byte[] data = new byte[Predef.UDP_BUFFER];
         char packet = Predef.PACKET_AUTOFOCUS;
         data[0] = Convert.ToByte(packet);
 
-//         for (int i = 0; i < cameraobjList.Count; i++)
-//             cameraobjList[i].SendUdpPacket(data, Predef.UDP_BUFFER);
+        // ftp의 폴더를 전달
+        byte[] namebytes = Encoding.UTF8.GetBytes(Predef.capturedDirectoryName);
+        for (int i = 0; i < namebytes.Length; i++)
+            data[i + 1] = namebytes[i];
+
         raspsocket.SendTcpPacket(data, Predef.TCP_BUFFER);
     }
 
-    // 찍어
+    // 마스터는 찍어
     public void Capture()
     {
-        byte[] data = new byte[Predef.UDP_BUFFER];
-        char packet = Predef.PACKET_SHOT;
-        data[0] = Convert.ToByte(packet);
+        // 마스터만 !!
+        if( ismasterRasp == true )
+        {
+            byte[] data = new byte[Predef.UDP_BUFFER];
+            char packet = Predef.PACKET_SHOT;
+            data[0] = Convert.ToByte(packet);
 
-        // ftp의 폴더를 전달
-        byte[] namebytes = Encoding.UTF8.GetBytes(Predef.capturedDirectoryName);
-        for(int i=0; i< namebytes.Length; i++)
-            data[i + 1] = namebytes[i];
-
-//         for (int i = 0; i < cameraobjList.Count; i++)
-//             cameraobjList[i].SendUdpPacket(data, Predef.UDP_BUFFER);
-
-        raspsocket.SendTcpPacket(data, Predef.TCP_BUFFER);
+            raspsocket.SendTcpPacket(data, Predef.TCP_BUFFER);
+        }
 
         for (int i = 0; i < cameraobjList.Count; i++)
         {

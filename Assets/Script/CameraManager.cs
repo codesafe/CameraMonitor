@@ -126,6 +126,11 @@ public class CameraManager : MonoBehaviour
     }
     public void SendAutoFocus()
     {
+        DateTime dt2 = new DateTime();
+        dt2 = DateTime.Now;
+        Predef.capturedDirectoryName = dt2.ToString("yyyyMMdd-HH_mm_ss");
+        Predef.workingFolder = string.Format("{0}/{1}", Predef.ftpDirectoryName, Predef.capturedDirectoryName);
+
         for (int i = 0; i < raspMachinelist.Length; i++)
         {
             if (raspMachinelist[i] != null)
@@ -135,19 +140,13 @@ public class CameraManager : MonoBehaviour
 
     public void Capture()
     {
-        DateTime dt2 = new DateTime();
-        dt2 = DateTime.Now;
-        Predef.capturedDirectoryName = dt2.ToString("yyyyMMdd-HH_mm_ss");
-        string path = string.Format("{0}/{1}", Predef.ftpDirectoryName, Predef.capturedDirectoryName);
-        MakeDirectory(path);
-
-        Predef.workingFolder = path; 
-
         for (int i = 0; i < raspMachinelist.Length; i++)
         {
             if (raspMachinelist[i] != null)
                 raspMachinelist[i].Capture();
         }
+
+        MakeDirectory(Predef.workingFolder);
     }
 
     public void Reset()
