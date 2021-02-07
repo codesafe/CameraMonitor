@@ -31,15 +31,16 @@ public class Predef
     static public string workingFolder = "";
 
     // Packet
-    static public char PACKET_MACHINE_NUMBER = (char)0x07;   // 머신 번호 ( Server -> Rasp )
-    static public char PACKET_MACHINE_INFO = (char)0x08;     // 머신 정보
-    static public char PACKET_CAMERA_NAME = (char)0x09;     // 카메라 이름
+    static public char PACKET_MACHINE_NUMBER = (char)0x07;      // 머신 번호 ( Server -> Rasp )
+    static public char PACKET_MACHINE_INFO = (char)0x08;        // 머신 정보
+    static public char PACKET_CAMERA_NAME = (char)0x09;         // 카메라 이름
 
-    static public char PACKET_SHOT = (char)0x10;        	// shot picture
-    static public char PACKET_AUTOFOCUS = (char)0x20;   	// auto focus
+    static public char PACKET_SHOT = (char)0x10;        	    // shot picture
+    static public char PACKET_AUTOFOCUS = (char)0x20;   	    // auto focus
+    static public char PACKET_AUTOFOCUSTOGGLE = (char)0x21;   	// auto focus toggle
 
-
-    static public char PACKET_SET_PARAMETER = (char)0x30;   // 파라메터 조정
+    static public char PACKET_SET_PARAMETER = (char)0x30;       // 파라메터 조정
+    static public char PACKET_UPLOAD_PATH = (char)0x31;         // 업로드 Path
 
     static public char PACKET_FORCE_UPLOAD = (char)0x40;
     static public char PACKET_UPLOAD_PROGRESS = (char)0x41;

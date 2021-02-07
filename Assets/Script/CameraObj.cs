@@ -347,6 +347,7 @@ public class CameraObj : MonoBehaviour
 
     public void Reset()
     {
+        preview.texture = null;
         preview.enabled = false;
         progress.enabled = false;
         SetIcon(CAMICON.ICON_GRAY);

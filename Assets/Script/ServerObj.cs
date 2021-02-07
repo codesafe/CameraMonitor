@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 //using FreeImageAPI;
 //using System.Runtime.InteropServices;
@@ -13,6 +15,7 @@ public class ServerObj : MonoBehaviour
     private static ServerObj _instance;
     [SerializeField] Button btnAutoFocus;
     [SerializeField] Button btnCapture;
+    [SerializeField] Toggle btnAutoFocusToggle;
 
     [SerializeField] Dropdown iso;
     [SerializeField] Dropdown shutterspeed;
@@ -29,6 +32,7 @@ public class ServerObj : MonoBehaviour
     private int aperture_value;
     private int captureformat_value;
 
+/*
     private readonly string[] isoString = { "Auto", "100", "200", "400", "800", "1600", "3200", "6400" };
     private readonly string[] shutterspeedString =
         { "bulb", "30", "25", "20", "15", "13", "10", "8", "6", "5", "4", "3.2", "2.5", "2", "1.6",
@@ -41,6 +45,13 @@ public class ServerObj : MonoBehaviour
     private readonly string [] captureformatString = { 
         "Large Fine JPEG", "Large Normal JPEG", "Medium Fine JPEG", "Medium Normal JPEG", "Small Fine JPEG",
         "Small Normal JPEG", "Smaller JPEG", "Tiny JPEG", "RAW + Large Fine JPEG", "RAW" };
+*/
+
+
+    private List<string> isoList = new List<string>();
+    private List<string> shutterspeedList = new List<string>();
+    private List<string> apertureList = new List<string>();
+    private List<string> imageformatList = new List<string>();
 
 
     public static ServerObj getInstance()
@@ -76,24 +87,49 @@ public class ServerObj : MonoBehaviour
             workingpath.text = Predef.workingFolder;
         }
 
-/*
-        try
-        {
-            FileInfo theSourceFile = null;
-            StreamReader reader = null;
-            theSourceFile = new FileInfo("./config.txt");
-            reader = theSourceFile.OpenText();
-            Predef.ftpDirectoryName = reader.ReadLine();
-            Predef.workingFolder = Predef.ftpDirectoryName;
+        /*
+                try
+                {
+                    FileInfo theSourceFile = null;
+                    StreamReader reader = null;
+                    theSourceFile = new FileInfo("./config.txt");
+                    reader = theSourceFile.OpenText();
+                    Predef.ftpDirectoryName = reader.ReadLine();
+                    Predef.workingFolder = Predef.ftpDirectoryName;
 
-            ftpPath.text = string.Format("Root path : {0}", Predef.ftpDirectoryName);
-            workingpath.text = Predef.workingFolder;
-        }
-        catch (Exception ex)
+                    ftpPath.text = string.Format("Root path : {0}", Predef.ftpDirectoryName);
+                    workingpath.text = Predef.workingFolder;
+                }
+                catch (Exception ex)
+                {
+                    ftpPath.text = "FTP Path ERR.";
+                }
+        */
+
+        ReadParam("/StreamingAssets/iso.csv", isoList);
+        ReadParam("/StreamingAssets/shutterspeed.csv", shutterspeedList);
+        ReadParam("/StreamingAssets/aperture.csv", apertureList);
+        ReadParam("/StreamingAssets/imageformat.csv", imageformatList);
+    }
+
+    void ReadParam(string path, List<string> strlist)
+    {
+        int count = 0;
+        string p = Application.dataPath + path;
+        StreamReader sr = new StreamReader(p);
+        //StreamReader sr = new StreamReader(path, Encoding.GetEncoding("euc-kr"));
+
+        while (!sr.EndOfStream)
         {
-            ftpPath.text = "FTP Path ERR.";
+            string s = sr.ReadLine();
+            string[] readstr = s.Split(',');
+            if( count > 1)
+            {
+                if (readstr[0] != "x" && readstr[1] != "x" && readstr[2] != "x")
+                    strlist.Add(readstr[0]);
+            }
+            count++;
         }
-*/
     }
 
     private void OnDestroy()
@@ -104,13 +140,13 @@ public class ServerObj : MonoBehaviour
 
     void InitOption()
     {
-        iso_value = 1;
+        iso_value = 0;
 
         iso.options.Clear();
-        for (int i=0; i< isoString.Length; i++)
+        for (int i=0; i< isoList.Count; i++)
         {
             Dropdown.OptionData option = new Dropdown.OptionData();
-            option.text = isoString[i];
+            option.text = isoList[i];
             iso.options.Add(option);
         }
         iso.value = iso_value;
@@ -119,21 +155,21 @@ public class ServerObj : MonoBehaviour
 
         shutterspeed_value = 36;
         shutterspeed.options.Clear();
-        for (int i = 0; i < shutterspeedString.Length; i++)
+        for (int i = 0; i < shutterspeedList.Count; i++)
         {
             Dropdown.OptionData option = new Dropdown.OptionData();
-            option.text = shutterspeedString[i];
+            option.text = shutterspeedList[i];
             shutterspeed.options.Add(option);
         }
         shutterspeed.value = shutterspeed_value;
         shutterspeed.onValueChanged.AddListener(OnShuutterSpeedValueChanged);
 
-        aperture_value = 6;
+        aperture_value = 7;
         aperture.options.Clear();
-        for (int i = 0; i < apertureString.Length; i++)
+        for (int i = 0; i < apertureList.Count; i++)
         {
             Dropdown.OptionData option = new Dropdown.OptionData();
-            option.text = apertureString[i];
+            option.text = apertureList[i];
             aperture.options.Add(option);
         }
         aperture.value = aperture_value;
@@ -141,10 +177,10 @@ public class ServerObj : MonoBehaviour
 
         captureformat_value = 0;
         format.options.Clear();
-        for (int i = 0; i < captureformatString.Length; i++)
+        for (int i = 0; i < imageformatList.Count; i++)
         {
             Dropdown.OptionData option = new Dropdown.OptionData();
-            option.text = captureformatString[i];
+            option.text = imageformatList[i];
             format.options.Add(option);
         }
         format.value = captureformat_value;
@@ -159,9 +195,16 @@ public class ServerObj : MonoBehaviour
 
     public void onClickSetParameter()
     {
+        // 파라메터 설정은 포커스 열림
+        if (autoFocusToggle == true)
+        {
+            btnAutoFocusToggle.isOn = false;
+            Delay(500);
+        }
+
         CameraManager.getInstance().SendParameter(iso_value, shutterspeed_value, aperture_value, captureformat_value);
 
-        if (captureformatString[captureformat_value] == "RAW + Large Fine JPEG" || captureformatString[captureformat_value] == "RAW")
+        if (imageformatList[captureformat_value] == "RAW + Large Fine JPEG" || imageformatList[captureformat_value] == "RAW")
             Predef.capturedFileExt = "raw";
         else
             Predef.capturedFileExt = "jpg";
@@ -172,8 +215,8 @@ public class ServerObj : MonoBehaviour
     public void onClickAutoFocus()
     {
         CameraManager.getInstance().Reset();
-
         CameraManager.getInstance().SendAutoFocus();
+
 //         if (captureformatString[captureformat_value] == "RAW + Large Fine JPEG" || captureformatString[captureformat_value] == "RAW")
 //             Predef.capturedFileExt = "raw";
 //         else
@@ -183,8 +226,20 @@ public class ServerObj : MonoBehaviour
         btnCapture.GetComponent<Button>().interactable = true;
     }
 
+    bool autoFocusToggle = false;
+    public void onClickAutoFocusToggle()
+    {
+        autoFocusToggle = !autoFocusToggle;
+        Debug.Log("onClickAutoFocusToggle : " + autoFocusToggle);
+
+        CameraManager.getInstance().SendAutoFocusToggle(autoFocusToggle);
+    }
+
     public void onClickCapture()
     {
+        CameraManager.getInstance().SendUploadPath();
+        Delay(200);
+
         CameraManager.getInstance().Capture();
         workingpath.text = Predef.workingFolder;
         UnityEngine.Debug.Log("Shot!");
@@ -194,25 +249,25 @@ public class ServerObj : MonoBehaviour
     public void OnISOValueChanged(int value)
     {
         iso_value = value;
-        UnityEngine.Debug.Log(isoString[iso_value]);
+        UnityEngine.Debug.Log(isoList[iso_value]);
     }
 
     public void OnShuutterSpeedValueChanged(int value)
     {
         shutterspeed_value = value;
-        UnityEngine.Debug.Log(shutterspeedString[shutterspeed_value]);
+        UnityEngine.Debug.Log(shutterspeedList[shutterspeed_value]);
     }
 
     public void OnApertureValueChanged(int value)
     {
         aperture_value = value;
-        UnityEngine.Debug.Log(apertureString[aperture_value]);
+        UnityEngine.Debug.Log(apertureList[aperture_value]);
     }
 
     public void OnCaptureFormatValueChanged(int value)
     {
         captureformat_value = value;
-        UnityEngine.Debug.Log(captureformatString[captureformat_value]);
+        UnityEngine.Debug.Log(imageformatList[captureformat_value]);
     }
 
     public void OnHover(CameraObj camobj)
@@ -255,4 +310,19 @@ public class ServerObj : MonoBehaviour
         //Application.OpenURL("file://[dir]");
         //EditorUtility.RevealInFinder(path)
     }
+
+    private DateTime Delay(int MS) 
+    { 
+        DateTime ThisMoment = DateTime.Now; 
+        TimeSpan duration = new TimeSpan(0, 0, 0, 0, MS); 
+        DateTime AfterWards = ThisMoment.Add(duration); 
+        while (AfterWards >= ThisMoment) 
+        { 
+            System.Windows.Forms.Application.DoEvents(); 
+            ThisMoment = DateTime.Now; 
+        } 
+        return DateTime.Now; 
+    }
+
+
 }

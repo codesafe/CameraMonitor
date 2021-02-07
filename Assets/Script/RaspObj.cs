@@ -178,7 +178,7 @@ public class RaspObj : MonoBehaviour
     // 설정
     public void SendParameter(int iso_value, int shutterspeed_value, int aperture_value, int captureformat)
     {
-        byte[] data = new byte[Predef.UDP_BUFFER];
+        byte[] data = new byte[Predef.TCP_BUFFER];
         char packet = Predef.PACKET_SET_PARAMETER;
         data[0] = Convert.ToByte(packet);
         data[1] = Convert.ToByte(iso_value);
@@ -202,8 +202,34 @@ public class RaspObj : MonoBehaviour
     // 포커스 잡아라 / 여기에 경로도 포함
     public void SendAutoFocus()
     {
-        byte[] data = new byte[Predef.UDP_BUFFER];
+        byte[] data = new byte[Predef.TCP_BUFFER];
         char packet = Predef.PACKET_AUTOFOCUS;
+        data[0] = Convert.ToByte(packet);
+
+        // ftp의 폴더를 전달
+        byte[] namebytes = Encoding.UTF8.GetBytes(Predef.capturedDirectoryName);
+        for (int i = 0; i < namebytes.Length; i++)
+            data[i + 1] = namebytes[i];
+
+        raspsocket.SendTcpPacket(data, Predef.TCP_BUFFER);
+    }
+
+    // 포커스 잡아라 (Toggle)
+    public void SendAutoFocusToggle(bool toggle)
+    {
+        byte[] data = new byte[Predef.TCP_BUFFER];
+        char packet = Predef.PACKET_AUTOFOCUSTOGGLE;
+        data[0] = Convert.ToByte(packet);
+        data[1] = Convert.ToByte(toggle == true ? 1 : 0);
+        raspsocket.SendTcpPacket(data, Predef.TCP_BUFFER);
+    }
+
+
+    // 업로드 경로
+    public void SendUploadPath()
+    {
+        byte[] data = new byte[Predef.TCP_BUFFER];
+        char packet = Predef.PACKET_UPLOAD_PATH;
         data[0] = Convert.ToByte(packet);
 
         // ftp의 폴더를 전달
@@ -220,7 +246,7 @@ public class RaspObj : MonoBehaviour
         // 마스터만 !!
         if( ismasterRasp == true )
         {
-            byte[] data = new byte[Predef.UDP_BUFFER];
+            byte[] data = new byte[Predef.TCP_BUFFER];
             char packet = Predef.PACKET_SHOT;
             data[0] = Convert.ToByte(packet);
 

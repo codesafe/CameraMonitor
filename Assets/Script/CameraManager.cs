@@ -109,10 +109,14 @@ public class CameraManager : MonoBehaviour
 
     void Refresh()
     {
+        int posy = 0;
         for(int i=0; i< raspMachinelist.Length; i++)
         {
             if (raspMachinelist[i] != null)
-               raspMachinelist[i].transform.localPosition = new Vector3(pivot.x, pivot.y - (i * 70), 0);
+            {
+                raspMachinelist[i].transform.localPosition = new Vector3(pivot.x, pivot.y - (posy * 70), 0);
+                posy++;
+            }
         }
     }
 
@@ -138,6 +142,31 @@ public class CameraManager : MonoBehaviour
         }
     }
 
+    public void SendAutoFocusToggle(bool focused)
+    {
+        DateTime dt2 = new DateTime();
+        dt2 = DateTime.Now;
+        Predef.capturedDirectoryName = dt2.ToString("yyyyMMdd-HH_mm_ss");
+        Predef.workingFolder = string.Format("{0}/{1}", Predef.ftpDirectoryName, Predef.capturedDirectoryName);
+
+        for (int i = 0; i < raspMachinelist.Length; i++)
+        {
+            if (raspMachinelist[i] != null)
+                raspMachinelist[i].SendAutoFocusToggle(focused);
+        }
+    }
+
+    public void SendUploadPath()
+    {
+        for (int i = 0; i < raspMachinelist.Length; i++)
+        {
+            if (raspMachinelist[i] != null)
+                raspMachinelist[i].SendUploadPath();
+        }
+
+        MakeDirectory(Predef.workingFolder);
+    }
+
     public void Capture()
     {
         for (int i = 0; i < raspMachinelist.Length; i++)
@@ -145,8 +174,6 @@ public class CameraManager : MonoBehaviour
             if (raspMachinelist[i] != null)
                 raspMachinelist[i].Capture();
         }
-
-        MakeDirectory(Predef.workingFolder);
     }
 
     public void Reset()
